@@ -1,19 +1,26 @@
-samples=["SRR636533"]
+samples="SRR636533"
+
 
 rule all:
     input:
         expand("fastqc/{SAMPLE}_{n}_fastqc.html", SAMPLE=samples, n=[1,2])
 
 
-##Download fastq data
+#can't download the sra file with prefetch
 
-
+##fastq-dump
+rule download_fastq:
+    input:
+        sra = "{samples}.sra"
+    output: "samples/{samples}_{n}.fastq"
+    shell: 'fastq-dump --split-files {input.sra} -O samples'
+    
 
 ##Fastqc module
 rule fastqc:
     input:
-        sample1="{sample}_1.fastq",
-        sample2="{sample}_2.fastq"
+        sample1="samples/{sample}_1.fastq",
+        sample2="samples/{sample}_2.fastq"
     output:
         html1="fastqc/{sample}_1_fastqc.html",
         html2="fastqc/{sample}_2_fastqc.html"
@@ -27,4 +34,5 @@ rule fastqc:
 
 
 ##Download chromosome
+
 
