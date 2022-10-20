@@ -7,6 +7,8 @@ rule all:
 
 ##Download fastq data
 
+
+
 ##Fastqc module
 rule fastqc:
     input:
@@ -22,4 +24,7 @@ rule fastqc:
         #Don't know if the code take it
 
     shell: "fastqc -o fastqc -t {threads} {input.sample1} {input.sample2}"
+
+
+##Download chromosome
 
