@@ -4,7 +4,7 @@ chromosome=["2"]
 
 rule all:
     input:
-        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
+        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf","star/{SAMPLE}.bam"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
 
 
 rule prefetch:
@@ -39,8 +39,6 @@ rule fastqc:
 
 
 ##Download chromosome index
-
-
 rule index:
     output: "chromosome/ch{CHROMO}.fa"
 
@@ -50,4 +48,46 @@ rule index:
     --genomeDir  chromosome/ \
     --genomeFastaFiles chromosome/ch{wildcards.CHROMO}.fa "
 
+#Genome annotation
+rule genome_annotation:
+    output: "chromosome/chr_annotation.gtf"
+    shell: "wget -O chromosome/chr_annotation.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.chr.gtf.gz\
+    && gunzip chromosome/chr_annotation.gtf.gz"
 
+
+""" 
+# a time pb with mapping
+#mapping
+rule mapping:
+    input:
+        sample1="samples/{SAMPLE}_1.fastq",
+        sample2="samples/{SAMPLE}_2.fastq"
+
+    output:"star/{SAMPLE}.bam"
+
+    shell:"STAR --outSAMstrandField intronMotif \
+--outFilterMismatchNmax 4 \
+--outFilterMultimapNmax 10 \
+--genomeDir chromosome/ \
+--readFilesIn {input.sample1} {input.sample2} \
+--runThreadN 2 \
+--outSAMunmapped None \
+--outSAMtype BAM SortedByCoordinate \
+--outStd BAM_SortedByCoordinate \
+--genomeLoad NoSharedMemory \
+> {output}"
+"""
+"""
+#mettre "star/{SAMPLE}.bam.bai" dans rule all
+
+rule samtools:
+    input: "star/{SAMPLE}.bam"
+    output: "star/{SAMPLE}.bam.bai"
+    shell: "samtools index {input}"
+"""
+
+"""
+
+rule couting_reads:
+
+"""
