@@ -31,8 +31,8 @@ rule fastqc:
         html2="fastqc/{sample}_2_fastqc.html"
     threads: 2
 
-    #containerized:
-        #"Docker/fastqc/dockerfile"
+    #singularity: 
+        #"docker://staphb/fastqc"
         #Don't know if the code take it
 
     shell: "fastqc -o fastqc -t {threads} {input.sample1} {input.sample2}"
@@ -55,7 +55,7 @@ rule genome_annotation:
     && gunzip chromosome/chr_annotation.gtf.gz"
 
 
-""" 
+""""
 # a time pb with mapping
 #mapping
 rule mapping:
@@ -68,25 +68,26 @@ rule mapping:
     shell:"STAR --outSAMstrandField intronMotif \
 --outFilterMismatchNmax 4 \
 --outFilterMultimapNmax 10 \
---genomeDir chromosome/ \
+--genomeDir chromosome \
 --readFilesIn {input.sample1} {input.sample2} \
---runThreadN 2 \
+--runThreadN 16 \
 --outSAMunmapped None \
 --outSAMtype BAM SortedByCoordinate \
 --outStd BAM_SortedByCoordinate \
 --genomeLoad NoSharedMemory \
+--limitBAMsortRAM 31000000000 \
 > {output}"
-"""
-"""
+
+
 #mettre "star/{SAMPLE}.bam.bai" dans rule all
 
 rule samtools:
     input: "star/{SAMPLE}.bam"
     output: "star/{SAMPLE}.bam.bai"
     shell: "samtools index {input}"
-"""
 
-"""
+
+
 
 rule couting_reads:
 
