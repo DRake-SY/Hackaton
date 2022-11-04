@@ -94,7 +94,7 @@ rule samtools:
     shell: "samtools index {input}"
 
     
-''''
+""""
 rule couting_reads:
 
 """
