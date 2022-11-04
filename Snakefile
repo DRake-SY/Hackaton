@@ -4,11 +4,12 @@ chromosome=["2"]
 
 rule all:
     input:
-        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
+        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf","star/{SAMPLE}.bam"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
         # ,"star/{SAMPLE}.bam" : fichier de sortie de star
 
 rule prefetch:
     output:"samples/{SAMPLE}.sra"
+    singularity: "docker://evolbioinfo/sratoolkit:v2.10.8"
     shell: 'prefetch {wildcards.SAMPLE} -O samples \
     && mv samples/{wildcards.SAMPLE}/{wildcards.SAMPLE}.sra samples \
     && rm -r samples/{wildcards.SAMPLE}'
@@ -18,6 +19,8 @@ rule fastq_dump:
     input: 
         sra="samples/{SAMPLE}.sra"
     output: "samples/{SAMPLE}_{n}.fastq"
+
+    singularity: "docker://evolbioinfo/sratoolkit:v2.10.8"
     shell: 'fastq-dump --split-files {input.sra} -O samples'
     
 
@@ -31,8 +34,8 @@ rule fastqc:
         html2="fastqc/{sample}_2_fastqc.html"
     threads: 2
 
-    #singularity: 
-        #"docker://staphb/fastqc"
+    singularity:
+        "docker://drakesy/hackaton:fastqcv2"
         #Don't know if the code take it
 
     shell: "fastqc -o fastqc -t {threads} {input.sample1} {input.sample2}"
@@ -41,6 +44,8 @@ rule fastqc:
 ##Download chromosome index
 rule index:
     output: "chromosome/ch{CHROMO}.fa"
+
+    singularity: "docker://drakesy/hackaton:star"
 
     shell: "wget -O chromosome/ch{wildcards.CHROMO}.fa.gz  https://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.{wildcards.CHROMO}.fa.gz \
     && gunzip chromosome/ch{wildcards.CHROMO}.fa.gz \
@@ -55,7 +60,7 @@ rule genome_annotation:
     && gunzip chromosome/chr_annotation.gtf.gz"
 
 
-""""
+
 # a time pb with mapping
 #mapping
 rule mapping:
@@ -64,6 +69,7 @@ rule mapping:
         sample2="samples/{SAMPLE}_2.fastq"
 
     output:"star/{SAMPLE}.bam"
+    singularity: "docker://drakesy/hackaton:star"
 
     shell:"STAR --outSAMstrandField intronMotif \
 --outFilterMismatchNmax 4 \
@@ -84,11 +90,11 @@ rule mapping:
 rule samtools:
     input: "star/{SAMPLE}.bam"
     output: "star/{SAMPLE}.bam.bai"
+    singularity: "docker://drakesy/hackaton:samtools"
     shell: "samtools index {input}"
 
-
-
-
+    
+''''
 rule couting_reads:
 
 """
