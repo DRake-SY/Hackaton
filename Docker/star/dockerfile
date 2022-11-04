@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
 	software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
 
-RUN apt-get install -y rna-star
+RUN apt-get install -y \
+	rna-star \
+	wget
 
 ENTRYPOINT ["/usr/local/bin/STAR"]
