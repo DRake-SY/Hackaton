@@ -8,3 +8,5 @@ RUN apt-get update && apt-get install -y \
 RUN add-apt-repository ppa:deadsnakes/ppa
 
 RUN apt-get install -y samtools
+
+ENTRYPOINT ["/usr/local/bin/samtools"]
