@@ -45,7 +45,7 @@ rule fastqc:
 rule index:
     output: "chromosome/ch{CHROMO}.fa"
 
-    singularity: "docker://drakesy/hackaton:star"
+    singularity: "docker://drakesy/hackaton:starv2"
 
     shell: "wget -O chromosome/ch{wildcards.CHROMO}.fa.gz  https://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.{wildcards.CHROMO}.fa.gz \
     && gunzip chromosome/ch{wildcards.CHROMO}.fa.gz \
@@ -56,6 +56,7 @@ rule index:
 #Genome annotation
 rule genome_annotation:
     output: "chromosome/chr_annotation.gtf"
+
     shell: "wget -O chromosome/chr_annotation.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.chr.gtf.gz\
     && gunzip chromosome/chr_annotation.gtf.gz"
 
@@ -69,7 +70,7 @@ rule mapping:
         sample2="samples/{SAMPLE}_2.fastq"
 
     output:"star/{SAMPLE}.bam"
-    singularity: "docker://drakesy/hackaton:star"
+    singularity: "docker://drakesy/hackaton:starv2"
 
     shell:"STAR --outSAMstrandField intronMotif \
 --outFilterMismatchNmax 4 \
@@ -94,7 +95,7 @@ rule samtools:
     shell: "samtools index {input}"
 
     
-""""
+"""
 rule couting_reads:
 
 """
