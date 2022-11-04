@@ -1,0 +1,14 @@
+FROM ubuntu:20.04
+
+WORKDIR /home/maxime/Bureau/Hackaton/samples
+#Install dependecies for featureCounts
+
+RUN apt-get update && apt-get install -y \
+	software-properties-common
+RUN add-apt-repository ppa:deadsnakes/ppa
+
+RUN apt-get install -y \
+		fastqc \
+		default-jre
+
+ENTRYPOINT ["/usr/local/bin/fastqc"]
