@@ -4,8 +4,8 @@ chromosome=["2"]
 
 rule all:
     input:
-        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf","star/{SAMPLE}.bam"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
-        # ,"star/{SAMPLE}.bam" : fichier de sortie de star
+        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf","star/{SAMPLE}.bam.bai"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
+        
 
 rule prefetch:
     output:"samples/{SAMPLE}.sra"
