@@ -54,8 +54,8 @@ rule download_chromosome:
     do
         wget -O "$chromosome".fa.gz ftp://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome."$chromosome".fa.gz
     done
-    gunzip -c *.fa.gz > {output}
-    
+    gunzip -c *.fa.gz > {output} \
+    && rm *.fa.gz
     """
 
 #Genome annotation
@@ -63,8 +63,7 @@ rule download_genome_annotation:
     output: "chromosome/chr_annotation.gtf"
 
     shell: "wget -O chromosome/chr_annotation.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.chr.gtf.gz\
-    && gunzip chromosome/chr_annotation.gtf.gz\
-    && rm *.fa.gz"
+    && gunzip chromosome/chr_annotation.gtf.gz"
 
 
 #Index Star
@@ -84,6 +83,7 @@ rule index:
 #mapping
 rule mapping:
     input:
+        "chromosome/SAindex",
         sample1="samples/{SAMPLE}_1.fastq",
         sample2="samples/{SAMPLE}_2.fastq"
 
