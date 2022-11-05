@@ -1,16 +1,17 @@
-samples=["SRR636533"]
-chromosome=["2"]
+samples=["SRR636533"] #"636531" "636532" "628589" "628588" "628587" "628586" "628585" "628584" "628583" "628582"
+#chromosome=["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","MT","X","Y"]
 
 
 rule all:
     input:
-        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ch{CHROMO}.fa", "chromosome/chr_annotation.gtf","star/{SAMPLE}.bam.bai"], SAMPLE=samples,CHROMO=chromosome, n=[1,2])
-        
+        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ref.fa", "chromosome/chr_annotation.gtf", "chromosome/SAindex","star/{SAMPLE}.bam.bai"], SAMPLE=samples, n=[1,2])
+        #,"star/{SAMPLE}.bam.bai"
 
 rule prefetch:
     output:"samples/{SAMPLE}.sra"
     singularity: "docker://evolbioinfo/sratoolkit:v2.10.8"
-    shell: 'prefetch {wildcards.SAMPLE} -O samples \
+    shell: 'vdb-config -i\
+    && prefetch {wildcards.SAMPLE} -O samples \
     && mv samples/{wildcards.SAMPLE}/{wildcards.SAMPLE}.sra samples \
     && rm -r samples/{wildcards.SAMPLE}'
 
@@ -42,23 +43,40 @@ rule fastqc:
 
 
 ##Download chromosome index
-rule index:
-    output: "chromosome/ch{CHROMO}.fa"
-
-    singularity: "docker://drakesy/hackaton:starv2"
-
-    shell: "wget -O chromosome/ch{wildcards.CHROMO}.fa.gz  https://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.{wildcards.CHROMO}.fa.gz \
-    && gunzip chromosome/ch{wildcards.CHROMO}.fa.gz \
-    && STAR --runMode genomeGenerate \
-    --genomeDir  chromosome/ \
-    --genomeFastaFiles chromosome/ch{wildcards.CHROMO}.fa "
+rule download_chromosome:
+   output:
+    "chromosome/ref.fa"
+   
+   resources: load=25
+   shell:
+    """
+    for chromosome in "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "MT" "X" "Y";
+    do
+        wget -O "$chromosome".fa.gz ftp://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome."$chromosome".fa.gz
+    done
+    gunzip -c *.fa.gz > {output}
+    
+    """
 
 #Genome annotation
-rule genome_annotation:
+rule download_genome_annotation:
     output: "chromosome/chr_annotation.gtf"
 
     shell: "wget -O chromosome/chr_annotation.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.chr.gtf.gz\
-    && gunzip chromosome/chr_annotation.gtf.gz"
+    && gunzip chromosome/chr_annotation.gtf.gz\
+    && rm *.fa.gz"
+
+
+#Index Star
+rule index:
+    input:"chromosome/ref.fa"
+    output:"chromosome/SAindex"
+    singularity:"docker://drakesy/hackaton:starv2"
+    threads: 16
+    shell:
+     """
+     STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir chromosome/ --genomeFastaFiles {input}
+     """
 
 
 
@@ -94,7 +112,7 @@ rule samtools:
     singularity: "docker://drakesy/hackaton:samtools"
     shell: "samtools index {input}"
 
-    
+
 """
 rule couting_reads:
 
