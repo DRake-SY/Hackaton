@@ -1,10 +1,10 @@
 samples=["SRR636533"] #"636531" "636532" "628589" "628588" "628587" "628586" "628585" "628584" "628583" "628582"
 #chromosome=["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","MT","X","Y"]
-
+strands = ['0', '1', '2']
 
 rule all:
     input:
-        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ref.fa", "chromosome/chr_annotation.gtf", "chromosome/SAindex","star/{SAMPLE}.bam.bai"], SAMPLE=samples, n=[1,2])
+        expand(["fastqc/{SAMPLE}_{n}_fastqc.html","chromosome/ref.fa", "chromosome/chr_annotation.gtf", "chromosome/SAindex","star/{SAMPLE}.bam.bai","gene_{SAMPLE}_strand_{STRAND}.counts"], SAMPLE=samples, STRAND=strands, n=[1,2])
         #,"star/{SAMPLE}.bam.bai"
 
 rule prefetch:
@@ -113,7 +113,16 @@ rule samtools:
     shell: "samtools index {input}"
 
 
-"""
-rule couting_reads:
 
-"""
+rule couting_reads:
+    input:
+        gtf="chromosome/chr_annotation.gtf",
+        bam="star/{SAMPLE}.bam",
+        bai="star/{SAMPLE}.bam.bai"
+    output:
+        "gene_{SAMPLE}_strand_{STRAND}.counts"
+    singularity: "docker://drakesy/hackaton:subread"
+    threads: 4
+    shell:
+     "featureCounts -T {threads} -t gene -g gene_id -s {wildcards.STRAND} -a {input.gtf} -o {output} {input.bam}"
+
