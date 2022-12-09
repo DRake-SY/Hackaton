@@ -12,7 +12,7 @@ rule download_fastq:
  singularity:
   "docker://pegi3s/sratoolkit:2.10.0"
  threads: 16
- resources: load = 25 #a tester sans 
+ resources: load = 25
  shell:
   "fasterq-dump {wildcards.SAMPLE} --progress -O samples"
 
@@ -60,7 +60,7 @@ rule index:
     singularity:"docker://drakesy/hackaton:starv2"
     threads: 16
     resources: load=25
-    shell:
+     shell:
      "STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir chromosome/ --genomeFastaFiles {input}"
 
 
@@ -98,6 +98,7 @@ rule samtools:
 #feature_count
 rule counting_reads:
  input:
+  samp=expand("star/{smp}.bam", smp=samples),
   gtf="chromosome/chr_annotation.gtf"
  output:
   "result.counts"
@@ -107,10 +108,7 @@ rule counting_reads:
  resources: load=25
  shell:
   """
-  for samp in {samples};
-  do 
-   featureCounts -T {threads} -t gene -g gene_id -s 0 -a {input.gtf} -o {output} star/$samp.bam
-  done
+   featureCounts -T {threads} -t gene -g gene_id -s 0 -a {input.gtf} -o {output>
   """
 
 
