@@ -1,23 +1,32 @@
-samples=["SRR628582","SRR628583","SRR628584","SRR628585","SRR628586","SRR628587","SRR628588","SRR628589"]
+"""
+Protocole d'analyse RNAseq :
+Ce snakefile prend en entrée une liste de clé d'accession et retourne en sortie une table de comptage ainsi que des fichiers intermédiaires
+"""
+
+samples=["SRR628582","SRR628583","SRR628584","SRR628585","SRR628586","SRR628587","SRR628588","SRR628589"]#  liste des clé d'accession aux données RNAseq
 
 
+## rule reliant chaque module (rule) entre eux en spécifiant les différents résultats attendue à la fin
 rule all:
     input:
         expand(["fastqc/{SAMPLE}_1_fastqc.html","fastqc/{SAMPLE}_2_fastqc.html","chromosome/ref.fa","chromosome/chr_annotation.gtf","star/{SAMPLE}.bam.bai","result.counts"], SAMPLE=samples)
+        #on utilise la fonction pour utiliser le wildcard causer par l'utilisation des clés d'accession
 
 
+## rule permettant de télécharger les données RNAseq utilisées pour l'analyse 
 rule download_fastq:
  output:
     "samples/{SAMPLE}_1.fastq","samples/{SAMPLE}_2.fastq"
  singularity:
-  "docker://pegi3s/sratoolkit:2.10.0"
+  "docker://pegi3s/sratoolkit:2.10.0" #docker choisit pour utiliser les commandes de sra-toolkit
  threads: 16
- resources: load = 25
- shell:
+ resources: load = 25  #limte de ressources
+ shell: 
   "fasterq-dump {wildcards.SAMPLE} --progress -O samples"
 
 
-##Fastqc module
+
+## Rule utilisant la fonction fastqc : elle prend en entrée une paire de fichier fastq et retourne des fichiers Html
 rule fastqc:
     input:
         sample1="samples/{SAMPLE}_1.fastq",
@@ -26,15 +35,15 @@ rule fastqc:
         html1="fastqc/{SAMPLE}_1_fastqc.html",
         html2="fastqc/{SAMPLE}_2_fastqc.html"
     threads: 2
-    singularity:
+    singularity: #docker créé pour utiliser la fonction fastqc
         "docker://drakesy/hackaton:fastqcv2"
     shell: "fastqc -o fastqc -t {threads} {input.sample1} {input.sample2}"
 
 
-##Download chromosome index
+## Rule qui va télécharger l'ensemble des chromosomes nécessaire à l'indexation star
 rule download_chromosome:
    output:
-    "chromosome/ref.fa"
+    "chromosome/ref.fa" #fichier regroupant l'ensemble des données de chaque chromosome
    shell:
     """
     for chromosome in "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "MT" "X" "Y";
@@ -45,7 +54,7 @@ rule download_chromosome:
     && rm *.fa.gz
     """
 
-#Genome annotation
+## Rule permettant de télécharge le génome de référence 
 rule download_genome_annotation:
     output: "chromosome/chr_annotation.gtf"
     resources: load=25
@@ -53,9 +62,9 @@ rule download_genome_annotation:
     && gunzip chromosome/chr_annotation.gtf.gz"
 
 
-#Index Star
+## Rule permettant l'indexation du génome de référence 
 rule index:
-    input:"chromosome/ref.fa"
+    input:"chromosome/ref.fa" #fichier d'entré des chromosomes
     output:"chromosome/SAindex"
     singularity:"docker://drakesy/hackaton:starv2"
     threads: 16
@@ -64,13 +73,13 @@ rule index:
      "STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir chromosome/ --genomeFastaFiles {input}"
 
 
-#mapping
+## Rule qui va aligner les reads avec le génome de référence indexé 
 rule mapping:
-    input:
+    input: #on utilise la pair de fichier fastq pour chaque clé d'accession
         "chromosome/SAindex",
-        sample1="samples/{SAMPLE}_1.fastq",
+        sample1="samples/{SAMPLE}_1.fastq", 
         sample2="samples/{SAMPLE}_2.fastq"
-    output:"star/{SAMPLE}.bam"
+    output:"star/{SAMPLE}.bam" #sort des fichiers bam pour chaque clé d'accesion
     singularity: "docker://drakesy/hackaton:starv2"
     threads: 16
     resources: load=25
@@ -87,7 +96,7 @@ rule mapping:
 --limitBAMsortRAM 31000000000 \
 > {output}"
 
-#samtools
+## Rule permettant l'indexation du fichier bam aligné sur le génome de référence
 rule samtools:
     input: "star/{SAMPLE}.bam"
     output: "star/{SAMPLE}.bam.bai"
@@ -95,7 +104,7 @@ rule samtools:
     resources: load=25
     shell: "samtools index {input}"
 
-#feature_count
+## Rule permettant la création du table de comptage à partir des fichiers bam
 rule counting_reads:
  input:
   samp=expand("star/{smp}.bam", smp=samples),
@@ -108,7 +117,7 @@ rule counting_reads:
  resources: load=25
  shell:
   """
-   featureCounts -T {threads} -t gene -g gene_id -s 0 -a {input.gtf} -o {output>
+   featureCounts -T {threads} -t gene -g gene_id -s 0 -a {input.gtf} -o {output} {input.samp}
   """
 
 
