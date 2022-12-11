@@ -18,7 +18,7 @@ fic <- read.table("result.counts")
 #formatage des donn?es
 cnts <- as.data.frame(apply(fic[2:nrow(fic),7:length(fic)], 2, as.numeric))
 colnames(cnts) <- fic[1,7:length(fic)]
-row.names(cnts) <- fic[2:nrow(fic),1]
+row.names(cnts) <- fic[2:nrow(fic),1] #la variable cnts est la matrice de comptabe (en ligne, les gènes, en colonne, le nombre de comptage pour chaque patient)
 dim(cnts)
 
 ## Analyse diff?rentielle primaire -------
@@ -65,11 +65,11 @@ dim(cnts)
 
 # test de diff?rents filtres
 
-#on enl?ve tous les g?nes qui au moins une fois ne sont pas exprim?s
+#on enleve tous les genes qui au moins une fois ne sont pas exprimes
 cnts_filtered_nozero <- subset(cnts, cnts[,1] > 0 & cnts[,2] > 0 & cnts[,3] > 0 & cnts[,4] > 0 & cnts[,5] > 0 & cnts[,6] > 0 & cnts[,7] > 0 & cnts[,8] > 0)
 #seuillage, enlever les g?nes qui en moyenne ne sont pas exprim?s plus de 5 fois
 cnts_filtered_mean5 = cnts[which(rowMeans(cnts)>5),]
-#on enl?ve les g?nes non exprim?s
+#on enleve les genes non exprim?s
 #cnts_filtered_mean0 = cnts[-which(rowMeans(cnts)==0),]
 
 dim(cnts_filtered_nozero)
@@ -82,16 +82,16 @@ dim(cnts_filtered_mean5)
 # 30029 g?nes gard?s
 #summary(cnts_filtered_mean0)
 
-## Analyse diff?rentielle sur table filtr?e --------
+## Analyse diff?rentielle sur table filtree --------
 
 # Construction d'un objet DEseq
-cond <- factor(c(1,1,1,2,2,2,2,2)) # diff?rents goupes : 1 = mut?, 2 = non-mut?
-dds_nozero <- DESeqDataSetFromMatrix(cnts_filtered_nozero, DataFrame(cond), ~ cond)
+cond <- factor(c(1,1,1,2,2,2,2,2)) # differents goupes : 1 = mute, 2 = non-mute
+dds_nozero <- DESeqDataSetFromMatrix(cnts_filtered_nozero, DataFrame(cond), ~ cond) #changement du format matrice vers DESeq afin d'utiliser la fonction du package.
 dds_mean5 <- DESeqDataSetFromMatrix(cnts_filtered_mean5, DataFrame(cond), ~ cond)
 #dds_mean0 <- DESeqDataSetFromMatrix(cnts_filtered_mean0, DataFrame(cond), ~ cond)
 
 # standard analysis
-dds_nozero = DESeq(dds_nozero)
+dds_nozero = DESeq(dds_nozero) # analyse différentielle par défaut (loi biniomiale negative, test de Wald pour significativité)
 dds_mean5 = DESeq(dds_mean5)
 #dds_mean0 = DESeq(dds_mean0)
 res_nozero = results(dds_nozero)
@@ -106,14 +106,14 @@ hist(res_mean5$pvalue, main="mean5")
 #on arr?te ici l'analyse pour ce jeu de donn?es
 
 # moderated log2 fold changes
-resLFC_mean5 <- lfcShrink(dds_mean5, coef=2, type="apeglm")
+resLFC_mean5 <- lfcShrink(dds_mean5, coef=2, type="apeglm") #add shrunken log fold change (ajusted p-values)
 resLFC_nozero <- lfcShrink(dds_nozero, coef=2, type="apeglm")
 
 # an alternate analysis: likelihood ratio test
-ddsLRT_mean5 <- DESeq(dds_mean5, test="LRT", reduced= ~ 1)
+ddsLRT_mean5 <- DESeq(dds_mean5, test="LRT", reduced= ~ 1) #utiilisation du test de significativité LRT dans l'analyse différentielle (likelihood ratio test)
 resLRT_mean5 <- results(ddsLRT_mean5)
 ddsLRT_nozero <- DESeq(dds_nozero, test="LRT", reduced= ~ 1)
-resLRT_nozero <- results(ddsLRT_nozero)
+resLRT_nozero <- results(ddsLRT_nozero) 
 
 pdf("p_nozero.pdf")
 par(mfrow=c(1,3))
