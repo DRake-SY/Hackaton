@@ -12,12 +12,17 @@ echo -e "\e[1;47;40m|                          Lancement du workflow            
 echo -e "\e[1;47;40m|                                                                               |\e[0m"
 echo -e "\e[1;47;40m---------------------------------------------------------------------------------\e[0m"
 
+## Lancement du workflow snakemake
+
 snakemake -s Snakefile --cores 16 --use-singularity
+
 
 echo -e "\e[1;47;40m---------------------------------------------------------------------------------\e[0m"
 echo -e "\e[1;47;40m|                                                                               |\e[0m"
 echo -e "\e[1;47;40m|                          Analyse différentielle                               |\e[0m"
 echo -e "\e[1;47;40m|                                                                               |\e[0m"
 echo -e "\e[1;47;40m---------------------------------------------------------------------------------\e[0m"
+
+## Lancement de l'analyse différentielle
 
 Rscript analyse_données.R
