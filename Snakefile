@@ -69,7 +69,7 @@ rule index:
     singularity:"docker://drakesy/hackaton:starv2"
     threads: 16
     resources: load=25
-     shell:
+    shell:
      "STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir chromosome/ --genomeFastaFiles {input}"
 
 
