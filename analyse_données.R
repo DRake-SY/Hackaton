@@ -152,6 +152,12 @@ hist(resLFC_mean5$log2FoldChange, main='LFC logFC')
 hist(resLRT_mean5$log2FoldChange, main='LRT logFC')
 dev.off()
 
+## Nombre de gènes différentiellement exprimés ------------
+sum(res_mean5$padj < 0.1, na.rm=TRUE)
+#119
+sum(res_nozero$padj < 0.1, na.rm=TRUE)
+#144
+
 # dds[res$pvalue[1-is.na(res$pvalue)]]
 # 
 # dds[resLFC$pvalue<0.01]
