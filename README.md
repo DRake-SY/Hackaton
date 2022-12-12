@@ -1,8 +1,8 @@
 # Hackaton reproductibilité
 
-Ce projet à pour but une analyse RNAseq reproductible par la création d'un workflow Snakemake. Ce dernier fonctionne uniquement avec les données spécifiées dans le Snakemake
+Ce projet a pour but une analyse RNAseq reproductible par la création d'un workflow Snakemake. Ce dernier fonctionne uniquement avec les données spécifiées dans le Snakemake
 
-Pour utiliser ce workflow, il vous faudra une machine virtuelle BioPipes de 16 coeur et 64 Go ram disponible sur le cloud IFB
+Pour utiliser ce workflow, il vous faudra une machine virtuelle BioPipes de 16 coeurs et 64 Go ram disponible sur le cloud IFB
 
 
 ## Utilisation du workflow
@@ -23,7 +23,7 @@ afin d'utiliser la commande singulatity du Snakefile
 
 ### Lancement du workflow
 
-Après avoir installer les dépendances nécéssaire au bon fonctionnement 
+Après avoir installé les dépendances nécéssaires au bon fonctionnement 
 
 ```
 snakemake -s Snakefile --cores 2 --use-singularity --force all
