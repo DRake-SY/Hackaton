@@ -23,7 +23,7 @@ afin d'utiliser la commande singulatity du Snakefile
 
 ### Lancement du workflow
 
-Après avoir installé les dépendances nécéssaires au bon fonctionnement 
+Après avoir installé les dépendances nécessaires au bon fonctionnement 
 
 ```
 snakemake -s Snakefile --cores 2 --use-singularity --force all
